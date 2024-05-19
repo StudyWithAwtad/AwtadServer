@@ -10,7 +10,7 @@ namespace AwtadStudy.FirebaseAdmin
             // Configure the FirebaseApp Admin SDK.
             FirebaseApp.Create(new AppOptions()
             {
-                Credential = GoogleCredential.FromFile("/Users/kabha/Projects/service-account-file.json"),
+                Credential = GoogleCredential.FromFile(configuration.GetConnectionString("CredentialPathFile")),
                 ProjectId = "study-with-awtad",
             });
 
