@@ -11,7 +11,7 @@ namespace AwtadStudy.FirebaseAdmin
             FirebaseApp.Create(new AppOptions()
             {
                 Credential = GoogleCredential.FromFile(configuration.GetConnectionString("CredentialPathFile")),
-                ProjectId = "study-with-awtad",
+                ProjectId = configuration.GetConnectionString("ProjectId"),
             });
 
             //Here we can add more firebase apps, e.g Firebase-Databse configuration...
