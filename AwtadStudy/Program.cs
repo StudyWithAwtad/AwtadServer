@@ -1,4 +1,5 @@
 ﻿using AwtadStudy.FirebaseAdmin;
+using AwtadStudy.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -6,8 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// Defining FirebaseService Admin SDK dependency as a singleton.
+
+// Register FirebaseService Admin SDK dependency as a singleton.
+//A single instance of the service is created and shared across the entire application.
 builder.Services.AddSingleton<FirebaseService>();
+
+builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
 
 var app = builder.Build();
 

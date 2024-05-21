@@ -18,9 +18,11 @@
   <ItemGroup>
     <None Remove="Controllers\" />
     <None Remove="FirebaseAdmin\" />
+    <None Remove="Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="FirebaseAdmin\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>

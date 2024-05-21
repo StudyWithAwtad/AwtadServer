@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AwtadStudy.FirebaseAdmin;
 using FirebaseAdmin.Auth;
-using System.Collections.Generic;
+using AwtadStudy.Interfaces;
 
 namespace AwtadStudy.Controllers
 {
@@ -10,11 +10,16 @@ namespace AwtadStudy.Controllers
     {
         public ILogger<UsersController> Logger { get; }
         private readonly FirebaseService _firebaseService;
+        private readonly IFirebaseAuth _firebaseAuthService;
 
-        public UsersController(ILogger<UsersController> logger, FirebaseService firebaseService) {
+        public UsersController(
+            ILogger<UsersController> logger,
+            FirebaseService firebaseService,
+            IFirebaseAuth firebaseAuthService) {
             Logger = logger;
             // Inject the FirebaseService Dependency
             _firebaseService = firebaseService;
+            _firebaseAuthService = firebaseAuthService;
         }
 
         // GET: api/values
@@ -23,7 +28,7 @@ namespace AwtadStudy.Controllers
         {
             try
             {
-                IEnumerable<UserRecord> users = await FirebaseAuthService.GetUsersAsync();
+                IEnumerable<UserRecord> users = await _firebaseAuthService.GetUsersAsync();
                 return Ok(users);
             }
             catch (FirebaseAuthException error)
@@ -35,11 +40,12 @@ namespace AwtadStudy.Controllers
 
         // GET api/values/5
         [HttpGet("{uid}")]
-        public async Task<IActionResult> Get(string uid)
+        public async Task<ActionResult<Task<UserRecord>>> Get(string uid)
         {
             try
             {
-                UserRecord user = await FirebaseAuthService.GetUserAsync(uid);
+                UserRecord user = await _firebaseAuthService.GetUserAsync(uid);
+                string customToken = await _firebaseAuthService.CreateCustomToken(user.Uid);
                 return Ok(user);
             }
             catch (FirebaseAuthException error)
@@ -51,11 +57,11 @@ namespace AwtadStudy.Controllers
         
         // POST api/values
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UserRecordArgs userArgs)
+        public async Task<ActionResult<Task<UserRecord>>> Post([FromBody] UserRecordArgs userArgs)
         {
             try
             {
-                UserRecord user = await FirebaseAuthService.CreateUserAsync(userArgs);
+                UserRecord user = await _firebaseAuthService.CreateUserAsync(userArgs);
                 return Ok(user);
             } catch (FirebaseAuthException error)
             {
@@ -66,12 +72,12 @@ namespace AwtadStudy.Controllers
 
         // PUT api/values/5
         [HttpPut("{uid}")]
-        public async Task<IActionResult> Put(string uid, [FromBody] UserRecordArgs newUserArgs)
+        public async Task<ActionResult<Task<UserRecord>>> Put(string uid, [FromBody] UserRecordArgs newUserArgs)
         {
             try
             {
                 newUserArgs.Uid = uid;
-                UserRecord user = await FirebaseAuthService.UpdateUserAsync(newUserArgs);
+                UserRecord user = await _firebaseAuthService.UpdateUserAsync(newUserArgs);
                 return Ok(user);
             }
             catch (FirebaseAuthException error)
@@ -83,11 +89,11 @@ namespace AwtadStudy.Controllers
 
         // DELETE api/values/5
         [HttpDelete("{uid}")]
-        public async Task<IActionResult> Delete(string uid)
+        public async Task<ActionResult<Task<string>>> Delete(string uid)
         {
             try
             {
-                string deletedUserId = await FirebaseAuthService.DeleteUserAsync(uid);
+                string deletedUserId = await _firebaseAuthService.DeleteUserAsync(uid);
                 return Ok(deletedUserId);
             }
             catch (FirebaseAuthException error)
@@ -96,6 +102,8 @@ namespace AwtadStudy.Controllers
                 return BadRequest(error.Message); ;
             }
         }
+
+
     }
 }
 
