@@ -1,15 +1,23 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using AwtadStudy.FirebaseAdmin;
+using AwtadStudy.Interfaces;
 
+var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register FirebaseService Admin SDK dependency as a singleton.
+// A single instance of the service is created and shared across the entire application.
+builder.Services.AddSingleton<FirebaseService>();
+
+// Register the FirebaseAuth Service
+builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// The middleware to run for each HTTP request
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

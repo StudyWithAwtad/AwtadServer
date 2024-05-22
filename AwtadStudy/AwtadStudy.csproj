@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>d93faa9f-8a54-4bbc-aaa5-7f10a01710bc</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
@@ -16,8 +17,12 @@
 
   <ItemGroup>
     <None Remove="Controllers\" />
+    <None Remove="FirebaseAdmin\" />
+    <None Remove="Interfaces\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="FirebaseAdmin\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>
