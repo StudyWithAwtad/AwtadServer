@@ -9,13 +9,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register FirebaseService Admin SDK dependency as a singleton.
-//A single instance of the service is created and shared across the entire application.
+// A single instance of the service is created and shared across the entire application.
 builder.Services.AddSingleton<FirebaseService>();
 
+// Register the FirebaseAuth Service
 builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
 
 var app = builder.Build();
 
+// The middleware to run for each HTTP request
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
