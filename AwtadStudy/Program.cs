@@ -1,12 +1,21 @@
-﻿using AwtadStudy.FirebaseAdmin;
+﻿using System.Globalization;
+using AwtadStudy.Course;
+using AwtadStudy.FirebaseAdmin;
 using AwtadStudy.Interfaces;
 
+// set default CultureInfo to avoid bugs with string comparisons/parsing
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
 var builder = WebApplication.CreateBuilder(args);
+
 // Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpClient();
 
 // Register FirebaseService Admin SDK dependency as a singleton.
 // A single instance of the service is created and shared across the entire application.
@@ -14,6 +23,8 @@ builder.Services.AddSingleton<FirebaseService>();
 
 // Register the FirebaseAuth Service
 builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
+
+builder.Services.AddSingleton<ICourseServiceFactory, CourseServiceFactory>();
 
 var app = builder.Build();
 
