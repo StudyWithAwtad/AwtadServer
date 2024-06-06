@@ -2,6 +2,7 @@
 using AwtadStudy.FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using AwtadStudy.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AwtadStudy.Controllers
 {
@@ -20,6 +21,12 @@ namespace AwtadStudy.Controllers
             // Inject the FirebaseService Dependency
             _firebaseService = firebaseService;
             _firebaseAuthService = firebaseAuthService;
+        }
+
+        [HttpGet("healthcheck")]
+        public string HealthCheck()
+        {
+            return "healthy";
         }
 
         // GET: api/values
