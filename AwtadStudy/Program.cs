@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using AwtadStudy.Course;
 using AwtadStudy.FirebaseAdmin;
 using AwtadStudy.Interfaces;
@@ -42,4 +42,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
