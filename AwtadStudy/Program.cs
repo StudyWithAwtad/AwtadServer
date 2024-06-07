@@ -1,7 +1,6 @@
 using System.Globalization;
 using AwtadStudy.Course;
 using AwtadStudy.FirebaseAdmin;
-using AwtadStudy.Interfaces;
 
 // set default CultureInfo to avoid bugs with string comparisons/parsing
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
