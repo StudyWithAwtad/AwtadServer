@@ -1,116 +1,106 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AwtadStudy.FirebaseAdmin;
+﻿using AwtadStudy.FirebaseAdmin;
 using FirebaseAdmin.Auth;
-using AwtadStudy.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace AwtadStudy.Controllers
+namespace AwtadStudy.Controllers;
+
+[Route("api/[controller]")]
+public class UsersController(
+    ILogger<UsersController> logger,
+    FirebaseService firebaseService,
+    IFirebaseAuth firebaseAuthService) : Controller
 {
-    [Route("api/[controller]")]
-    public class UsersController : Controller
+    public ILogger<UsersController> Logger { get; } = logger;
+    private readonly FirebaseService _firebaseService = firebaseService;
+    private readonly IFirebaseAuth _firebaseAuthService = firebaseAuthService;
+
+    [HttpGet("healthcheck")]
+    public string HealthCheck()
     {
-        public ILogger<UsersController> Logger { get; }
-        private readonly FirebaseService _firebaseService;
-        private readonly IFirebaseAuth _firebaseAuthService;
+        return "healthy";
+    }
 
-        public UsersController(
-            ILogger<UsersController> logger,
-            FirebaseService firebaseService,
-            IFirebaseAuth firebaseAuthService) {
-            Logger = logger;
-            // Inject the FirebaseService Dependency
-            _firebaseService = firebaseService;
-            _firebaseAuthService = firebaseAuthService;
-        }
-
-        [HttpGet("healthcheck")]
-        public string HealthCheck()
+    // GET: api/values
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<UserRecord>>> Get()
+    {
+        try
         {
-            return "healthy";
+            IEnumerable<UserRecord> users = await _firebaseAuthService.GetUsersAsync();
+            return Ok(users);
         }
-
-        // GET: api/values
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserRecord>>> Get()
+        catch (FirebaseAuthException error)
         {
-            try
-            {
-                IEnumerable<UserRecord> users = await _firebaseAuthService.GetUsersAsync();
-                return Ok(users);
-            }
-            catch (FirebaseAuthException error)
-            {
-                Console.WriteLine($"Exception error: {error}");
-                return BadRequest(error.Message);
-            }
+            Console.WriteLine($"Exception error: {error}");
+            return BadRequest(error.Message);
         }
+    }
 
-        // GET api/values/5
-        [HttpGet("{uid}")]
-        public async Task<ActionResult<Task<UserRecord>>> Get(string uid)
+    // GET api/values/5
+    [HttpGet("{uid}")]
+    public async Task<ActionResult<Task<UserRecord>>> Get(string uid)
+    {
+        try
         {
-            try
-            {
-                UserRecord user = await _firebaseAuthService.GetUserAsync(uid);
-                string customToken = await _firebaseAuthService.CreateCustomToken(user.Uid);
-                return Ok(user);
-            }
-            catch (FirebaseAuthException error)
-            {
-                Console.WriteLine($"Exception error: {error}");
-                return BadRequest(error.Message);
-            }
+            UserRecord user = await _firebaseAuthService.GetUserAsync(uid);
+            string customToken = await _firebaseAuthService.CreateCustomToken(user.Uid);
+            return Ok(user);
         }
-        
-        // POST api/values
-        [HttpPost]
-        public async Task<ActionResult<Task<UserRecord>>> Post([FromBody] UserRecordArgs userArgs)
+        catch (FirebaseAuthException error)
         {
-            try
-            {
-                UserRecord user = await _firebaseAuthService.CreateUserAsync(userArgs);
-                return Ok(user);
-            } catch (FirebaseAuthException error)
-            {
-                Console.WriteLine($"Exception error: {error}");
-                return BadRequest(error.Message); ;
-            }
+            Console.WriteLine($"Exception error: {error}");
+            return BadRequest(error.Message);
         }
+    }
 
-        // PUT api/values/5
-        [HttpPut("{uid}")]
-        public async Task<ActionResult<Task<UserRecord>>> Put(string uid, [FromBody] UserRecordArgs newUserArgs)
+    // POST api/values
+    [HttpPost]
+    public async Task<ActionResult<Task<UserRecord>>> Post([FromBody] UserRecordArgs userArgs)
+    {
+        try
         {
-            try
-            {
-                newUserArgs.Uid = uid;
-                UserRecord user = await _firebaseAuthService.UpdateUserAsync(newUserArgs);
-                return Ok(user);
-            }
-            catch (FirebaseAuthException error)
-            {
-                Console.WriteLine($"Exception error: {error}");
-                return BadRequest(error.Message); ;
-            }
+            UserRecord user = await _firebaseAuthService.CreateUserAsync(userArgs);
+            return Ok(user);
         }
-
-        // DELETE api/values/5
-        [HttpDelete("{uid}")]
-        public async Task<ActionResult<Task<string>>> Delete(string uid)
+        catch (FirebaseAuthException error)
         {
-            try
-            {
-                string deletedUserId = await _firebaseAuthService.DeleteUserAsync(uid);
-                return Ok(deletedUserId);
-            }
-            catch (FirebaseAuthException error)
-            {
-                Console.WriteLine($"Exception error: {error}");
-                return BadRequest(error.Message); ;
-            }
+            Console.WriteLine($"Exception error: {error}");
+            return BadRequest(error.Message); ;
         }
+    }
 
+    // PUT api/values/5
+    [HttpPut("{uid}")]
+    public async Task<ActionResult<Task<UserRecord>>> Put(string uid, [FromBody] UserRecordArgs newUserArgs)
+    {
+        try
+        {
+            newUserArgs.Uid = uid;
+            UserRecord user = await _firebaseAuthService.UpdateUserAsync(newUserArgs);
+            return Ok(user);
+        }
+        catch (FirebaseAuthException error)
+        {
+            Console.WriteLine($"Exception error: {error}");
+            return BadRequest(error.Message); ;
+        }
+    }
 
+    // DELETE api/values/5
+    [HttpDelete("{uid}")]
+    public async Task<ActionResult<Task<string>>> Delete(string uid)
+    {
+        try
+        {
+            string deletedUserId = await _firebaseAuthService.DeleteUserAsync(uid);
+            return Ok(deletedUserId);
+        }
+        catch (FirebaseAuthException error)
+        {
+            Console.WriteLine($"Exception error: {error}");
+            return BadRequest(error.Message); ;
+        }
     }
 }
 
