@@ -1,6 +1,5 @@
 ﻿using FirebaseAdmin.Auth;
 
-
 namespace AwtadStudy.FirebaseAdmin;
 
 internal sealed class FirebaseAuthService : IFirebaseAuth
