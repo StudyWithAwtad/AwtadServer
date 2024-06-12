@@ -1,4 +1,4 @@
-﻿namespace AwtadStudy.Course;
+﻿namespace AwtadStudy.Universities;
 
 public sealed record CourseGroup(string GroupID,
                                  string Lecturer,
@@ -7,10 +7,17 @@ public sealed record CourseGroup(string GroupID,
 
 public sealed record LectureInfo(DayOfWeek Day, TimeOnly StartTime, TimeOnly EndTime, string Place);
 
-public sealed record ExamInfo(DateOnly Date, string Moed, ExamType Type);
+public sealed record ExamInfo(DateOnly Date, Moed Moed, ExamType Type);
 
 public enum ExamType
 {
     Final,
     Midterm,
+}
+
+public enum Moed
+{
+    A,
+    B,
+    Special,
 }

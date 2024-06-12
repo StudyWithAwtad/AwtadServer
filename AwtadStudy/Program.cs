@@ -1,5 +1,5 @@
 using System.Globalization;
-using AwtadStudy.Course;
+using AwtadStudy.Universities;
 using AwtadStudy.FirebaseAdmin;
 
 // set default CultureInfo to avoid bugs with string comparisons/parsing
@@ -23,7 +23,7 @@ builder.Services.AddSingleton<FirebaseService>();
 // Register the FirebaseAuth Service
 builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
 
-builder.Services.AddSingleton<ICourseServiceFactory, CourseServiceFactory>();
+builder.Services.AddSingleton<IUniversityServiceFactory, UniversityServiceFactory>();
 
 var app = builder.Build();
 

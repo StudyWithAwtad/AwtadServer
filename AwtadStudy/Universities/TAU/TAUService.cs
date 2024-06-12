@@ -1,15 +1,17 @@
 ﻿using System.Diagnostics;
-using AwtadStudy.Database;
+using DBCourseDTO = AwtadStudy.Database.CourseDTO;
 
-namespace AwtadStudy.Course;
+namespace AwtadStudy.Universities.TAU;
 
-public sealed class TAUCourseService(HttpClient http) : ICourseService
+public sealed class TAUService(HttpClient http) : IUniversityService
 {
+    private const string ApiUrlTemplate = "https://bid-it.appspot.com/ajax/chosen-courses-info/?university=TAU&semester={0}&courses_list={1}";
+
     public async Task<Course> GetCourse(string courseID, Semester semester)
     {
-        var courseDTO = await QueryApi(courseID, semester);
+        CourseDTO courseDTO = await QueryApi(courseID, semester);
 
-        var groups = ParseGroups(courseDTO.kvutzaDatas);
+        IEnumerable<CourseGroup> groups = ParseGroups(courseDTO.kvutzaData);
 
         return new(courseDTO.cNum,
                    courseDTO.cName,
@@ -22,29 +24,29 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
 
     public async IAsyncEnumerable<Course> GetCoursesForUser(string userID)
     {
-        var courseDTOs = await GetUserCoursesFromDB(userID);
+        IEnumerable<DBCourseDTO> courseDTOs = await GetUserCoursesFromDB(userID);
 
         var courseQueries = courseDTOs.Select(async c => (c, await QueryApi(c.CourseID, c.Semester)));
         var courseTuples = await Task.WhenAll(courseQueries);
 
-        foreach (var (courseDTO, apiCourse) in courseTuples)
+        foreach (var (dbCourseDTO, apiCourseDTO) in courseTuples)
         {
-            var apiGroups = apiCourse.kvutzaDatas.Where(g => g is not null && courseDTO.GroupIDs.Contains(g.gNum));
+            var apiGroups = apiCourseDTO.kvutzaData.Where(g => g is not null && dbCourseDTO.GroupIDs.Contains(g.gNum));
 
-            if (!apiGroups.Any()) throw new UnreachableException($"User is not registered to any groups from course {courseDTO.CourseID}.");
+            if (!apiGroups.Any()) throw new UnreachableException($"User is not registered to any groups from course {dbCourseDTO.CourseID}.");
 
             var courseGroups = ParseGroups(apiGroups);
 
-            yield return new(apiCourse.cNum,
-                             apiCourse.cName,
-                             apiCourse.hoursNum,
-                             apiCourse.depart,
-                             int.Parse(apiCourse.cYear!),
-                             courseDTO.Semester,
+            yield return new(apiCourseDTO.cNum,
+                             apiCourseDTO.cName,
+                             apiCourseDTO.hoursNum,
+                             apiCourseDTO.depart,
+                             int.Parse(apiCourseDTO.cYear!),
+                             dbCourseDTO.Semester,
                              courseGroups);
         }
 
-        Task<IEnumerable<CourseDTO>> GetUserCoursesFromDB(string userID) => throw new NotImplementedException();
+        Task<IEnumerable<DBCourseDTO>> GetUserCoursesFromDB(string userID) => throw new NotImplementedException();
     }
 
     public Task RegisterCourseForUser(string userID, string courseID, string groupID)
@@ -52,25 +54,25 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
         throw new NotImplementedException();
     }
 
-    private async Task<Coursesinfo> QueryApi(string courseID, Semester semester)
+    private async Task<CourseDTO> QueryApi(string courseID, Semester semester)
     {
         string semesterParam = semester switch
         {
-            Semester.A => "1",
-            Semester.B => "2",
+            Semester.Winter => "1",
+            Semester.Spring => "2",
             _ => throw new NotImplementedException()
         };
 
-        string url = $"https://bid-it.appspot.com/ajax/chosen-courses-info/?university=TAU&semester={semesterParam}&courses_list={courseID}";
+        string url = string.Format(ApiUrlTemplate, semesterParam, courseID);
         var rootDTO = await http.GetFromJsonAsync<RootDTO>(url);
 
-        var courseDTO = rootDTO.coursesinfo[0]
+        CourseDTO courseDTO = rootDTO.coursesinfo[0]
             ?? throw new InvalidOperationException("No course found with the specified ID and semester.");
 
         if (courseDTO.cNum != courseID) throw new UnreachableException("courseID != returned course's ID.");
         if (courseDTO.semester != semesterParam) throw new UnreachableException("semester != returned course's semester.");
 
-        if (courseDTO.kvutzaDatas is null) throw new UnreachableException("Course groups is null.");
+        if (courseDTO.kvutzaData is null) throw new UnreachableException("Course groups is null.");
 
         if (courseDTO.cName is null) throw new UnreachableException("Course name is null.");
 
@@ -89,9 +91,9 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
         _ => throw new NotImplementedException()
     };
 
-    private static IEnumerable<CourseGroup> ParseGroups(IEnumerable<Kvutzadata?> groupDTOs)
+    private static IEnumerable<CourseGroup> ParseGroups(IEnumerable<GroupDTO?> groupDTOs)
     {
-        foreach (var groupDTO in groupDTOs)
+        foreach (GroupDTO? groupDTO in groupDTOs)
         {
             if (groupDTO is null) throw new UnreachableException("Group is null.");
 
@@ -104,7 +106,7 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
         }
     }
 
-    private static IEnumerable<LectureInfo> ParseLectureInfo(Kvutzadata groupDTO)
+    private static IEnumerable<LectureInfo> ParseLectureInfo(GroupDTO groupDTO)
     {
         if (groupDTO.days is null or { Length: 0 }) throw new UnreachableException("Groups has no lectures.");
 
@@ -119,7 +121,7 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
         }
     }
 
-    private static IEnumerable<ExamInfo> ParseExamInfo(Kvutzadata groupDTO)
+    private static IEnumerable<ExamInfo> ParseExamInfo(GroupDTO groupDTO)
     {
         if (groupDTO.dates is null or { Length: 0 }) yield break;
 
@@ -131,54 +133,14 @@ public sealed class TAUCourseService(HttpClient http) : ICourseService
                 "בחינה סופית" => ExamType.Final,
                 _ => throw new NotImplementedException()
             };
-            var moed = groupDTO.moed![i]!;
+            var moed = groupDTO.moed![i]! switch
+            {
+                "א" => Moed.A,
+                "ב" => Moed.B,
+                _ => throw new NotImplementedException()
+            };
 
             yield return new(date, moed, examType);
         }
-    }
-
-    private struct RootDTO
-    {
-        public Coursesinfo?[] coursesinfo { get; set; }
-    }
-
-    private class Coursesinfo
-    {
-        public string? zchutHours { get; set; }
-        public string? depart { get; set; }
-        public string? language { get; set; }
-        public required string cNum { get; set; }
-        public object?[]? students_ids { get; set; }
-        public string? cYear { get; set; }
-        public double hoursNum { get; set; }
-        public string? havurotNum { get; set; }
-        public string? semester { get; set; }
-        public required string cName { get; set; }
-        public bool video { get; set; }
-        public bool isYearly { get; set; }
-        public string? faculty { get; set; }
-        public required Kvutzadata?[] kvutzaDatas { get; set; }
-        public string? matalot { get; set; }
-    }
-
-    private class Kvutzadata
-    {
-        public string?[]? lecturer { get; set; }
-        public string?[]? dates { get; set; }
-        public string? gNum { get; set; }
-        public string?[]? endMoedHours { get; set; }
-        public string? ofenHoraa { get; set; }
-        public string?[]? startMoedHours { get; set; }
-        public string[]? days { get; set; }
-        public string?[]? moedType { get; set; }
-        public string?[]? excellence { get; set; }
-        public string?[]? place { get; set; }
-        public string[]? beginHours { get; set; }
-        public string?[]? moed { get; set; }
-        public string[]? endHours { get; set; }
-        public double amountHours { get; set; }
-        public string? havura { get; set; }
-        public string? kind { get; set; }
-        public string? matconet { get; set; }
     }
 }

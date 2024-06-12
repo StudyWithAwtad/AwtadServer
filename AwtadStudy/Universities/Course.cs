@@ -1,4 +1,4 @@
-﻿namespace AwtadStudy.Course;
+﻿namespace AwtadStudy.Universities;
 
 public sealed record Course(string ID,
                             string Name,

@@ -1,4 +1,4 @@
-﻿using AwtadStudy.Course;
+﻿using AwtadStudy.Universities;
 
 namespace AwtadStudy.Database;
 
