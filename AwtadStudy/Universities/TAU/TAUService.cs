@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using AwtadStudy.Universities.Courses;
 using DBCourseDTO = AwtadStudy.Database.CourseDTO;
 
 namespace AwtadStudy.Universities.TAU;

@@ -1,4 +1,6 @@
-﻿namespace AwtadStudy.Universities;
+﻿using AwtadStudy.Universities.Courses;
+
+namespace AwtadStudy.Universities;
 
 public interface IUniversityService
 {

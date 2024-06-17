@@ -14,11 +14,3 @@ public sealed class UniversityServiceFactory(IHttpClientFactory httpClientFactor
         _ => throw new NotImplementedException()
     }, httpClientFactory);
 }
-
-public enum University
-{
-    TelAviv,
-    Technion,
-    BarIlan,
-    Haifa,
-}
