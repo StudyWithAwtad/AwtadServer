@@ -1,6 +1,6 @@
 using System.Globalization;
-using AwtadStudy.Course;
 using AwtadStudy.FirebaseAdmin;
+using AwtadStudy.Universities;
 
 // set default CultureInfo to avoid bugs with string comparisons/parsing
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -23,7 +23,7 @@ builder.Services.AddSingleton<FirebaseService>();
 // Register the FirebaseAuth Service
 builder.Services.AddScoped<IFirebaseAuth, FirebaseAuthService>();
 
-builder.Services.AddSingleton<ICourseServiceFactory, CourseServiceFactory>();
+builder.Services.AddSingleton<IUniversityServiceFactory, UniversityServiceFactory>();
 
 var app = builder.Build();
 
